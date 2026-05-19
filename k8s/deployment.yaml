@@ -1,0 +1,23 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: school-management
+  labels:
+    app: school-management
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: school-management
+  template:
+    metadata:
+      labels:
+        app: school-management
+    spec:
+      containers:
+        - name: school-management
+          image: xyunusemre/school-management:latest
+          imagePullPolicy: Always
+          ports:
+            - containerPort: 8080
+
