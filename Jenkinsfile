@@ -9,7 +9,10 @@ pipeline {
     }
 
     triggers {
-        githubPush()
+        // GitHub push webhook (ngrok ile dışa açıkken aktif olur)
+        // githubPush()
+        // Alternatif: her dakika GitHub'ı kontrol et
+        pollSCM('* * * * *')
     }
 
     stages {
