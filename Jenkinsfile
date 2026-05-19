@@ -6,6 +6,7 @@ pipeline {
         DOCKERHUB_USERNAME    = "${DOCKERHUB_CREDENTIALS_USR}"
         IMAGE_NAME            = "${DOCKERHUB_CREDENTIALS_USR}/school-management"
         IMAGE_TAG             = "latest"
+        KUBECONFIG            = "C:\\Users\\khrmn\\.kube\\config"
     }
 
     triggers {
@@ -55,8 +56,8 @@ pipeline {
         stage('Stage 6: Deploy to Kubernetes') {
             steps {
                 echo 'Applying Kubernetes manifests...'
-                bat 'kubectl apply -f k8s/deployment.yaml'
-                bat 'kubectl apply -f k8s/service.yaml'
+                bat 'kubectl apply -f k8s/deployment.yaml --validate=false'
+                bat 'kubectl apply -f k8s/service.yaml --validate=false'
                 bat 'kubectl rollout restart deployment/school-management'
                 bat 'kubectl rollout status deployment/school-management --timeout=120s'
             }
