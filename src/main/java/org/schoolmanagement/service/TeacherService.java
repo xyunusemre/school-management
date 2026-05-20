@@ -14,7 +14,7 @@ public class TeacherService {
     private long nextId = 1L;
 
     public TeacherService() {
-        teachers.add(new Teacher(nextId++, "Ahmet",  "Özmen",  "aozmen@university.edu",  "Software Engineering", "Prof."));
+        teachers.add(new Teacher(nextId++, "Ahmet",  "Ozmen",  "aozmen@university.edu",  "Software Engineering", "Prof."));
         teachers.add(new Teacher(nextId++, "Zeynep", "Arslan", "zarslan@university.edu", "Computer Engineering", "Dr."));
         teachers.add(new Teacher(nextId++, "Murat",  "Korkmaz","mkorkmaz@university.edu","Software Engineering", "Assoc. Prof."));
     }

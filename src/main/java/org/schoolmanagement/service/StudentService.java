@@ -15,11 +15,11 @@ public class StudentService {
 
     public StudentService() {
         // Örnek veriler
-        students.add(new Student(nextId++, "Ahmet",   "Yılmaz", "20210001", "Software Engineering", 3));
-        students.add(new Student(nextId++, "Ayşe",    "Kaya",   "20210002", "Software Engineering", 3));
+        students.add(new Student(nextId++, "Ahmet",   "Yilmaz", "20210001", "Software Engineering", 3));
+        students.add(new Student(nextId++, "Ayse",    "Kaya",   "20210002", "Software Engineering", 3));
         students.add(new Student(nextId++, "Mehmet",  "Demir",  "20220001", "Computer Engineering", 2));
-        students.add(new Student(nextId++, "Fatma",   "Çelik",  "20230001", "Software Engineering", 1));
-        students.add(new Student(nextId++, "Ali",     "Şahin",  "20200001", "Computer Engineering", 4));
+        students.add(new Student(nextId++, "Fatma",   "Celik",  "20230001", "Software Engineering", 1));
+        students.add(new Student(nextId++, "Ali",     "Sahin",  "20200001", "Computer Engineering", 4));
     }
 
     public List<Student> getAll() {
