@@ -1,40 +1,36 @@
 package org.schoolmanagement.service;
 
 import org.schoolmanagement.model.Teacher;
+import org.schoolmanagement.repository.TeacherRepository;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
 @Service
 public class TeacherService {
 
-    private final List<Teacher> teachers = new ArrayList<>();
-    private long nextId = 1L;
+    private final TeacherRepository teacherRepository;
 
-    public TeacherService() {
-        teachers.add(new Teacher(nextId++, "Ahmet",  "Ozmen",  "aozmen@university.edu",  "Software Engineering", "Prof."));
-        teachers.add(new Teacher(nextId++, "Zeynep", "Arslan", "zarslan@university.edu", "Computer Engineering", "Dr."));
-        teachers.add(new Teacher(nextId++, "Murat",  "Korkmaz","mkorkmaz@university.edu","Software Engineering", "Assoc. Prof."));
+    public TeacherService(TeacherRepository teacherRepository) {
+        this.teacherRepository = teacherRepository;
     }
 
-    public List<Teacher> getAll() { return teachers; }
+    public List<Teacher> getAll() {
+        return teacherRepository.findAll();
+    }
 
     public Optional<Teacher> getById(Long id) {
-        return teachers.stream().filter(t -> t.getId().equals(id)).findFirst();
+        return teacherRepository.findById(id);
     }
 
     public Teacher add(Teacher teacher) {
-        teacher.setId(nextId++);
-        teachers.add(teacher);
-        return teacher;
+        return teacherRepository.save(teacher);
     }
 
     public Optional<Teacher> delete(Long id) {
-        Optional<Teacher> found = getById(id);
-        found.ifPresent(teachers::remove);
+        Optional<Teacher> found = teacherRepository.findById(id);
+        found.ifPresent(t -> teacherRepository.deleteById(id));
         return found;
     }
 }
-

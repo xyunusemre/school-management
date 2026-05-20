@@ -1,6 +1,12 @@
 package org.schoolmanagement.model;
 
+import jakarta.persistence.*;
+
+@Entity
+@Table(name = "teachers")
 public class Teacher {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     private String name;
     private String surname;
@@ -32,4 +38,3 @@ public class Teacher {
     public String getTitle() { return title; }
     public void setTitle(String title) { this.title = title; }
 }
-

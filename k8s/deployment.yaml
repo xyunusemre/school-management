@@ -20,4 +20,12 @@ spec:
           imagePullPolicy: Always
           ports:
             - containerPort: 8080
-
+          env:
+            - name: DB_HOST
+              value: "mysql-service"
+            - name: DB_NAME
+              value: "schooldb"
+            - name: DB_USER
+              value: "root"
+            - name: DB_PASS
+              value: "root123"
