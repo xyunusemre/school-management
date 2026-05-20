@@ -56,6 +56,7 @@ pipeline {
         stage('Stage 6: Deploy to Kubernetes') {
             steps {
                 echo 'Applying Kubernetes manifests...'
+                bat 'kubectl apply -f k8s/mysql-deployment.yaml --validate=false'
                 bat 'kubectl apply -f k8s/deployment.yaml --validate=false'
                 bat 'kubectl apply -f k8s/service.yaml --validate=false'
                 bat 'kubectl rollout restart deployment/school-management'
