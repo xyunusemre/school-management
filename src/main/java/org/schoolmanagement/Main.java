@@ -15,16 +15,6 @@ public class Main {
         SpringApplication.run(Main.class, args);
     }
 
-    // Ana sayfa
-    @GetMapping("/")
-    public Map<String, String> home() {
-        return Map.of(
-            "app",     "School Management System",
-            "version", "1.0",
-            "status",  "Running on Kubernetes",
-            "endpoints", "/api/students | /api/teachers | /api/courses"
-        );
-    }
 
     // Eski endpoint, geriye dönük uyumluluk
     @GetMapping("/hello")

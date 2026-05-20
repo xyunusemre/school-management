@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>School Management</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"/>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet"/>
+  <style>
+    body { background: #f0f2f5; }
+    .navbar { background: linear-gradient(135deg, #1a237e, #283593); }
+    .nav-tabs .nav-link { color: #495057; font-weight: 500; }
+    .nav-tabs .nav-link.active { color: #1a237e; font-weight: 700; border-bottom: 3px solid #1a237e; }
+    .card { border: none; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,.08); }
+    .card-header { border-radius: 12px 12px 0 0 !important; font-weight: 600; }
+    table thead { background: #e8eaf6; }
+    .badge-dept { background: #e8eaf6; color: #1a237e; font-size: .75rem; padding: 3px 8px; border-radius: 20px; }
+    .btn-icon { padding: 3px 8px; }
+    .stat-card { border-left: 4px solid; }
+    .stat-student { border-color: #1565c0; }
+    .stat-teacher { border-color: #2e7d32; }
+    .stat-course  { border-color: #e65100; }
+    .toast-container { position: fixed; bottom: 1rem; right: 1rem; z-index: 9999; }
+  </style>
+</head>
+<body>
+
+<!-- Navbar -->
+<nav class="navbar navbar-dark px-4 py-3 mb-4">
+  <span class="navbar-brand fs-4 fw-bold"><i class="bi bi-mortarboard-fill me-2"></i>School Management</span>
+</nav>
+
+<div class="container-xl pb-5">
+
+  <!-- Stats -->
+  <div class="row g-3 mb-4" id="stats-row">
+    <div class="col-md-4">
+      <div class="card stat-card stat-student p-3 d-flex flex-row align-items-center gap-3">
+        <i class="bi bi-people-fill fs-1 text-primary"></i>
+        <div><div class="text-muted small">Öğrenciler</div><div class="fs-3 fw-bold" id="stat-students">–</div></div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card stat-card stat-teacher p-3 d-flex flex-row align-items-center gap-3">
+        <i class="bi bi-person-workspace fs-1 text-success"></i>
+        <div><div class="text-muted small">Öğretmenler</div><div class="fs-3 fw-bold" id="stat-teachers">–</div></div>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="card stat-card stat-course p-3 d-flex flex-row align-items-center gap-3">
+        <i class="bi bi-book-fill fs-1 text-warning"></i>
+        <div><div class="text-muted small">Dersler</div><div class="fs-3 fw-bold" id="stat-courses">–</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <ul class="nav nav-tabs mb-4" id="mainTab">
+    <li class="nav-item"><button class="nav-link active" data-bs-toggle="tab" data-bs-target="#tab-students"><i class="bi bi-people me-1"></i>Öğrenciler</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-teachers"><i class="bi bi-person-workspace me-1"></i>Öğretmenler</button></li>
+    <li class="nav-item"><button class="nav-link" data-bs-toggle="tab" data-bs-target="#tab-courses"><i class="bi bi-book me-1"></i>Dersler</button></li>
+  </ul>
+
+  <div class="tab-content">
+
+    <!-- ===== STUDENTS TAB ===== -->
+    <div class="tab-pane fade show active" id="tab-students">
+      <div class="row g-4">
+        <!-- Add Form -->
+        <div class="col-lg-4">
+          <div class="card">
+            <div class="card-header bg-primary text-white"><i class="bi bi-person-plus me-1"></i>Yeni Öğrenci</div>
+            <div class="card-body">
+              <form id="form-student">
+                <div class="mb-2"><input class="form-control form-control-sm" id="s-name" placeholder="Ad" required/></div>
+                <div class="mb-2"><input class="form-control form-control-sm" id="s-surname" placeholder="Soyad" required/></div>
+                <div class="mb-2"><input class="form-control form-control-sm" id="s-number" placeholder="Öğrenci No" required/></div>
+                <div class="mb-2"><input class="form-control form-control-sm" id="s-dept" placeholder="Bölüm" required/></div>
+                <div class="mb-3">
+                  <select class="form-select form-select-sm" id="s-grade">
+                    <option value="">Sınıf seç</option>
+                    <option>1</option><option>2</option><option>3</option><option>4</option>
+                  </select>
+                </div>
+                <button class="btn btn-primary w-100 btn-sm" type="submit"><i class="bi bi-plus-circle me-1"></i>Ekle</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <!-- Table -->
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-people me-1"></i>Öğrenci Listesi</span>
+              <button class="btn btn-outline-secondary btn-sm" onclick="loadStudents()"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead><tr><th>ID</th><th>Ad Soyad</th><th>No</th><th>Bölüm</th><th>Sınıf</th><th></th></tr></thead>
+                  <tbody id="tbody-students"><tr><td colspan="6" class="text-center text-muted py-3">Yükleniyor…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== TEACHERS TAB ===== -->
+    <div class="tab-pane fade" id="tab-teachers">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="card">
+            <div class="card-header bg-success text-white"><i class="bi bi-person-plus me-1"></i>Yeni Öğretmen</div>
+            <div class="card-body">
+              <form id="form-teacher">
+                <div class="mb-2"><input class="form-control form-control-sm" id="t-name" placeholder="Ad" required/></div>
+                <div class="mb-2"><input class="form-control form-control-sm" id="t-surname" placeholder="Soyad" required/></div>
+                <div class="mb-2"><input class="form-control form-control-sm" id="t-email" placeholder="E-posta" type="email" required/></div>
+                <div class="mb-2"><input class="form-control form-control-sm" id="t-dept" placeholder="Bölüm" required/></div>
+                <div class="mb-3">
+                  <select class="form-select form-select-sm" id="t-title">
+                    <option value="">Unvan seç</option>
+                    <option>Dr.</option><option>Assoc. Prof.</option><option>Prof.</option>
+                  </select>
+                </div>
+                <button class="btn btn-success w-100 btn-sm" type="submit"><i class="bi bi-plus-circle me-1"></i>Ekle</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-person-workspace me-1"></i>Öğretmen Listesi</span>
+              <button class="btn btn-outline-secondary btn-sm" onclick="loadTeachers()"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead><tr><th>ID</th><th>Unvan Ad Soyad</th><th>E-posta</th><th>Bölüm</th><th></th></tr></thead>
+                  <tbody id="tbody-teachers"><tr><td colspan="5" class="text-center text-muted py-3">Yükleniyor…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ===== COURSES TAB ===== -->
+    <div class="tab-pane fade" id="tab-courses">
+      <div class="row g-4">
+        <div class="col-lg-4">
+          <div class="card">
+            <div class="card-header bg-warning text-dark"><i class="bi bi-journal-plus me-1"></i>Yeni Ders</div>
+            <div class="card-body">
+              <form id="form-course">
+                <div class="mb-2"><input class="form-control form-control-sm" id="c-code" placeholder="Ders Kodu (örn. CS101)" required/></div>
+                <div class="mb-2"><input class="form-control form-control-sm" id="c-name" placeholder="Ders Adı" required/></div>
+                <div class="mb-2"><input class="form-control form-control-sm" id="c-credits" placeholder="Kredi" type="number" min="1" max="10" required/></div>
+                <div class="mb-2"><input class="form-control form-control-sm" id="c-dept" placeholder="Bölüm" required/></div>
+                <div class="mb-3"><input class="form-control form-control-sm" id="c-teacher" placeholder="Öğretmen ID" type="number" required/></div>
+                <button class="btn btn-warning w-100 btn-sm" type="submit"><i class="bi bi-plus-circle me-1"></i>Ekle</button>
+              </form>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-8">
+          <div class="card">
+            <div class="card-header bg-white d-flex justify-content-between align-items-center">
+              <span><i class="bi bi-book me-1"></i>Ders Listesi</span>
+              <button class="btn btn-outline-secondary btn-sm" onclick="loadCourses()"><i class="bi bi-arrow-clockwise"></i></button>
+            </div>
+            <div class="card-body p-0">
+              <div class="table-responsive">
+                <table class="table table-hover mb-0">
+                  <thead><tr><th>ID</th><th>Kod</th><th>Ders Adı</th><th>Kredi</th><th>Bölüm</th><th>Öğretmen ID</th><th></th></tr></thead>
+                  <tbody id="tbody-courses"><tr><td colspan="7" class="text-center text-muted py-3">Yükleniyor…</td></tr></tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /tab-content -->
+</div>
+
+<!-- Toast -->
+<div class="toast-container">
+  <div id="toast" class="toast align-items-center text-white border-0" role="alert">
+    <div class="d-flex"><div class="toast-body" id="toast-msg"></div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast"></button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+const API = '';
+
+function showToast(msg, type = 'success') {
+  const t = document.getElementById('toast');
+  t.className = `toast align-items-center text-white border-0 bg-${type}`;
+  document.getElementById('toast-msg').textContent = msg;
+  bootstrap.Toast.getOrCreateInstance(t, {delay: 3000}).show();
+}
+
+async function api(url, method = 'GET', body = null) {
+  const opts = { method, headers: {'Content-Type':'application/json'} };
+  if (body) opts.body = JSON.stringify(body);
+  const res = await fetch(API + url, opts);
+  if (!res.ok) throw new Error(res.status);
+  if (method === 'DELETE') return res.status === 200 ? res.json() : null;
+  return res.status !== 204 ? res.json() : null;
+}
+
+// ---- STUDENTS ----
+async function loadStudents() {
+  const tbody = document.getElementById('tbody-students');
+  try {
+    const data = await api('/api/students');
+    document.getElementById('stat-students').textContent = data.length;
+    tbody.innerHTML = data.length === 0
+      ? '<tr><td colspan="6" class="text-center text-muted py-3">Kayıt yok</td></tr>'
+      : data.map(s => `<tr>
+          <td><span class="badge bg-secondary">${s.id}</span></td>
+          <td>${s.name} ${s.surname}</td>
+          <td><code>${s.studentNumber}</code></td>
+          <td><span class="badge-dept">${s.department}</span></td>
+          <td>${s.grade}. Sınıf</td>
+          <td><button class="btn btn-outline-danger btn-icon btn-sm" onclick="deleteStudent(${s.id})"><i class="bi bi-trash"></i></button></td>
+        </tr>`).join('');
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="6" class="text-center text-danger py-3">Yüklenemedi</td></tr>'; }
+}
+
+document.getElementById('form-student').addEventListener('submit', async e => {
+  e.preventDefault();
+  try {
+    await api('/api/students', 'POST', {
+      name: document.getElementById('s-name').value,
+      surname: document.getElementById('s-surname').value,
+      studentNumber: document.getElementById('s-number').value,
+      department: document.getElementById('s-dept').value,
+      grade: parseInt(document.getElementById('s-grade').value)
+    });
+    e.target.reset();
+    showToast('Öğrenci eklendi ✓');
+    loadStudents();
+  } catch(err) { showToast('Hata: ' + err.message, 'danger'); }
+});
+
+async function deleteStudent(id) {
+  if (!confirm('Silinsin mi?')) return;
+  try { await api('/api/students/' + id, 'DELETE'); showToast('Silindi ✓'); loadStudents(); }
+  catch(e) { showToast('Silinemedi', 'danger'); }
+}
+
+// ---- TEACHERS ----
+async function loadTeachers() {
+  const tbody = document.getElementById('tbody-teachers');
+  try {
+    const data = await api('/api/teachers');
+    document.getElementById('stat-teachers').textContent = data.length;
+    tbody.innerHTML = data.length === 0
+      ? '<tr><td colspan="5" class="text-center text-muted py-3">Kayıt yok</td></tr>'
+      : data.map(t => `<tr>
+          <td><span class="badge bg-secondary">${t.id}</span></td>
+          <td><strong>${t.title}</strong> ${t.name} ${t.surname}</td>
+          <td>${t.email}</td>
+          <td><span class="badge-dept">${t.department}</span></td>
+          <td><button class="btn btn-outline-danger btn-icon btn-sm" onclick="deleteTeacher(${t.id})"><i class="bi bi-trash"></i></button></td>
+        </tr>`).join('');
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="5" class="text-center text-danger py-3">Yüklenemedi</td></tr>'; }
+}
+
+document.getElementById('form-teacher').addEventListener('submit', async e => {
+  e.preventDefault();
+  try {
+    await api('/api/teachers', 'POST', {
+      name: document.getElementById('t-name').value,
+      surname: document.getElementById('t-surname').value,
+      email: document.getElementById('t-email').value,
+      department: document.getElementById('t-dept').value,
+      title: document.getElementById('t-title').value
+    });
+    e.target.reset();
+    showToast('Öğretmen eklendi ✓');
+    loadTeachers();
+  } catch(err) { showToast('Hata: ' + err.message, 'danger'); }
+});
+
+async function deleteTeacher(id) {
+  if (!confirm('Silinsin mi?')) return;
+  try { await api('/api/teachers/' + id, 'DELETE'); showToast('Silindi ✓'); loadTeachers(); }
+  catch(e) { showToast('Silinemedi', 'danger'); }
+}
+
+// ---- COURSES ----
+async function loadCourses() {
+  const tbody = document.getElementById('tbody-courses');
+  try {
+    const data = await api('/api/courses');
+    document.getElementById('stat-courses').textContent = data.length;
+    tbody.innerHTML = data.length === 0
+      ? '<tr><td colspan="7" class="text-center text-muted py-3">Kayıt yok</td></tr>'
+      : data.map(c => `<tr>
+          <td><span class="badge bg-secondary">${c.id}</span></td>
+          <td><code>${c.code}</code></td>
+          <td>${c.name}</td>
+          <td>${c.credits} kr.</td>
+          <td><span class="badge-dept">${c.department}</span></td>
+          <td>${c.teacherId ?? '–'}</td>
+          <td><button class="btn btn-outline-danger btn-icon btn-sm" onclick="deleteCourse(${c.id})"><i class="bi bi-trash"></i></button></td>
+        </tr>`).join('');
+  } catch(e) { tbody.innerHTML = '<tr><td colspan="7" class="text-center text-danger py-3">Yüklenemedi</td></tr>'; }
+}
+
+document.getElementById('form-course').addEventListener('submit', async e => {
+  e.preventDefault();
+  try {
+    await api('/api/courses', 'POST', {
+      code: document.getElementById('c-code').value,
+      name: document.getElementById('c-name').value,
+      credits: parseInt(document.getElementById('c-credits').value),
+      department: document.getElementById('c-dept').value,
+      teacherId: parseInt(document.getElementById('c-teacher').value)
+    });
+    e.target.reset();
+    showToast('Ders eklendi ✓');
+    loadCourses();
+  } catch(err) { showToast('Hata: ' + err.message, 'danger'); }
+});
+
+async function deleteCourse(id) {
+  if (!confirm('Silinsin mi?')) return;
+  try { await api('/api/courses/' + id, 'DELETE'); showToast('Silindi ✓'); loadCourses(); }
+  catch(e) { showToast('Silinemedi', 'danger'); }
+}
+
+// Init
+loadStudents(); loadTeachers(); loadCourses();
+</script>
+</body>
+</html>
+

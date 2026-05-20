@@ -5,7 +5,7 @@ metadata:
   labels:
     app: school-management
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
       app: school-management

@@ -25,5 +25,5 @@ GET /hello
 ```bash
 kubectl scale deployment school-management --replicas=2
 kubectl get pods
-```
+```.
 
