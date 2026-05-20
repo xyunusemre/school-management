@@ -527,7 +527,7 @@ minikube dashboard
 
 | Teknoloji | Versiyon | Görev |
 |-----------|----------|-------|
-| Java | 17 | Uygulama dili |
+| Java | 21 | Uygulama dili |
 | Spring Boot | 3.2.5 | Web framework, gömülü Tomcat |
 | Gradle | 8.12 | Build aracı, bağımlılık yönetimi |
 | Docker | Desktop | Image build, container çalıştırma |
@@ -537,3 +537,205 @@ minikube dashboard
 | Jenkins | Latest | CI/CD otomasyon sunucusu |
 | GitHub | - | Kaynak kod deposu |
 
+
+---
+
+## 10. SUNUM PROVASI — HOCA-ÖĞRENCİ DİYALOGU
+
+### 10.1 Sunum Sıralaması (Yapılacaklar)
+
+```
+1. GitHub repo → https://github.com/xyunusemre/school-management
+   └─ Jenkinsfile, Dockerfile, k8s/, Main.java göster
+
+2. Jenkins → http://localhost:9090
+   └─ Son başarılı build göster
+   └─ Console Output → 6 stage'in hepsini göster
+   └─ "Started by an SCM change" satırını göster
+
+3. Docker Hub → https://hub.docker.com/r/xyunusemre/school-management
+   └─ latest image'ı göster
+
+4. Terminal → kubectl komutları
+   └─ kubectl get pods       (Running göster)
+   └─ kubectl get services   (NodePort göster)
+   └─ kubectl get deployments
+
+5. Uygulamayı çalıştır
+   └─ kubectl port-forward service/school-management-service 7779:80
+   └─ http://localhost:7779/hello → cevap göster
+
+6. Scale Up
+   └─ kubectl scale deployment school-management --replicas=2
+   └─ kubectl get pods → 2x Running göster
+   └─ Endpoint'e tekrar eriş → hâlâ çalışıyor
+```
+
+---
+
+### 10.2 Soru-Cevap Provası
+
+---
+
+**S: Genel olarak ne yaptın, anlat.**
+
+C: Bir Spring Boot web uygulaması yazdım. Bu uygulamayı Gradle ile JAR'a derleyip
+Docker image oluşturdum, Docker Hub'a push ettim. Jenkins pipeline ile tüm bu adımları
+otomatize ettim. Son olarak Minikube üzerinde Kubernetes'e deploy ettim.
+
+---
+
+**S: Jenkins pipeline nasıl tetikleniyor?**
+
+C: `pollSCM('* * * * *')` kullandım. Jenkins her dakika GitHub repo'yu kontrol eder.
+Yeni bir commit push edildiğinde Jenkins bunu fark edip pipeline'ı otomatik başlatır.
+Console Output'ta "Started by an SCM change" yazısıyla bunu doğrulayabiliriz.
+
+*→ Jenkins'i aç, son build'e gir, Console Output'ta "Started by an SCM change" satırını göster.*
+
+---
+
+**S: 6 stage'i sırasıyla açıkla.**
+
+C:
+1. **Stage 1 – Clone**: GitHub'dan kaynak kodu Jenkins workspace'ine çeker
+2. **Stage 2 – Build JAR**: `gradlew.bat bootJar` ile Gradle tüm bağımlılıkları
+   tek bir fat JAR'a paketler. Spring Boot, Tomcat dahil her şey bu JAR'ın içinde.
+3. **Stage 3 – Docker Image**: Dockerfile'daki multi-stage build ile önce container
+   içinde JAR derlenir, sonra küçük Alpine+JRE image'ına kopyalanır.
+4. **Stage 4 – DockerHub Login**: Jenkins credentials store'dan şifre alınır,
+   güvenli şekilde (stdin) login yapılır, log'a şifre yazılmaz.
+5. **Stage 5 – Push**: Image `xyunusemre/school-management:latest` olarak
+   Docker Hub'a gönderilir.
+6. **Stage 6 – Deploy**: `kubectl apply` ile Minikube K8s cluster'ına deploy edilir,
+   `rollout status` komutuyla tamamlanması beklenir.
+
+---
+
+**S: Deployment ve Service YAML dosyalarını açıkla.**
+
+C: deployment.yaml:
+> "Deployment, Kubernetes'e 'bu uygulamayı 1 pod olarak çalıştır, çökerse yeniden
+> başlat' demek. `image: xyunusemre/school-management:latest` ile DockerHub'daki
+> image'ı kullanıyor. `imagePullPolicy: Always` ile her deploy'da güncel image çekiyor."
+
+service.yaml:
+> "Service, dış dünyadan pod'a erişim sağlar. NodePort tipi kullandık.
+> `targetPort: 8080` pod içindeki uygulama portu, `nodePort: 30080` ise
+> Minikube node üzerinde açılan port. Servis aynı zamanda birden fazla pod
+> varsa load balancing yapar."
+
+---
+
+**S: Uygulamanın çalıştığını göster.**
+
+C: *Terminalde sırasıyla:*
+```bash
+kubectl get pods
+# → STATUS: Running çıktısı göster
+
+kubectl port-forward service/school-management-service 7779:80
+# Yeni terminalde:
+# Tarayıcıda: http://localhost:7779/hello
+# → "Hello from School Management App! Running on Kubernetes."
+```
+
+---
+
+**S: Pod, Deployment, Service nedir? Farkları nedir?**
+
+C:
+- **Pod**: Kubernetes'in en küçük birimi. İçinde container çalışır.
+  IP'si her yeniden başlatmada değişir, geçicidir.
+- **Deployment**: Pod'ları yöneten üst yapı. Kaç pod çalışsın,
+  çökünce ne yapılsın tanımlar. Rolling update sağlar.
+- **Service**: Sabit erişim noktası. Pod IP'si değişse bile
+  Service her zaman aynı adreste durur. Birden fazla pod arasında
+  load balancing yapar.
+
+---
+
+**S: Scale et bakalım.**
+
+C: *Terminalde:*
+```bash
+kubectl scale deployment school-management --replicas=2
+kubectl get pods
+# → 2 pod STATUS: Running göster
+
+# Endpoint hâlâ çalışıyor mu?
+Invoke-RestMethod -Uri "http://localhost:7779/hello" -UseBasicParsing
+# → "Hello from School Management App! Running on Kubernetes."
+```
+> "Service iki pod arasında load balancing yapıyor,
+> her iki pod da cevap verebiliyor."
+
+---
+
+**S: Neden multi-stage Dockerfile kullandın?**
+
+C: Tek stage kullansaydım final image Gradle + JDK ile birlikte ~1GB olurdu.
+Multi-stage build ile:
+- 1. aşamada: Gradle container'ı içinde JAR derlenir
+- 2. aşamada: Sadece JRE + JAR ile küçük (~200MB) image oluşturulur
+
+Final image'a Gradle, JDK, kaynak kod girmez → küçük, hızlı, güvenli.
+
+---
+
+**S: `imagePullPolicy: Always` neden önemli?**
+
+C: Her Jenkins pipeline çalıştığında yeni image Docker Hub'a push ediliyor.
+`Always` olmasa Kubernetes eski image'ı cache'den kullanır, güncelleme görünmez.
+`Always` ile her deploy'da DockerHub'dan en güncel image çekiliyor.
+
+---
+
+**S: Jenkins credentials nasıl yönetiyorsun? Şifre güvende mi?**
+
+C: Docker Hub şifresini Jenkins'in Credentials store'una ekledim
+(`ID: dockerhub-credentials`). Jenkinsfile'da şifreyi düz metin yazmak yerine
+`credentials('dockerhub-credentials')` ile güvenli şekilde çekiyorum.
+Pipeline log'larında şifre `****` olarak maskeleniyor.
+
+---
+
+**S: Veritabanı yok mu?**
+
+C: Proje gereksinimlerinde "no DB expected" yazıyordu.
+Uygulama tek bir `GET /hello` endpoint'i olan basit bir REST API.
+Gerçek bir okul yönetim sisteminde DB elbette olurdu.
+
+---
+
+### 10.3 Sunum Öncesi Kontrol Listesi
+
+Sunum sabahı şunları kontrol et:
+
+```bash
+# 1. Minikube çalışıyor mu?
+minikube status
+# → host: Running, kubelet: Running, apiserver: Running
+
+# 2. Pod'lar ayakta mı?
+kubectl get pods
+# → STATUS: Running
+
+# 3. Eğer pod yoksa (bilgisayar kapandıysa) Jenkins'ten tekrar build et
+# http://localhost:9090 → Build Now
+
+# 4. Port-forward başlat
+kubectl port-forward service/school-management-service 7779:80
+
+# 5. Test et
+# Tarayıcıda: http://localhost:7779/hello
+
+# 6. Jenkins arayüzü açık mı?
+# http://localhost:9090
+
+# 7. GitHub repo açık mı?
+# https://github.com/xyunusemre/school-management
+
+# 8. Docker Hub açık mı?
+# https://hub.docker.com/r/xyunusemre/school-management
+```
